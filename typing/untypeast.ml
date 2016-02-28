@@ -243,7 +243,7 @@ let extension_constructor sub ext =
   Te.constructor ~loc ~attrs
     (map_loc sub ext.ext_name)
     (match ext.ext_kind with
-      | Text_decl (args, ret) ->
+      | Text_decl (args, ret, _) ->
           Pext_decl (constructor_arguments sub args,
                      map_opt (sub.typ sub) ret)
       | Text_rebind (_p, lid) -> Pext_rebind (map_loc sub lid)
@@ -255,10 +255,19 @@ let effect_constructor sub ext =
   Te.effect_constructor ~loc ~attrs
     (map_loc sub ext.ext_name)
     (match ext.ext_kind with
-      | Text_decl (args, ret) ->
+      | Text_decl (args, ret, edef) ->
         begin
           match map_opt (sub.typ sub) ret with
-          | Some ret -> Peff_decl (constructor_arguments sub args, ret, failwith "TODO")
+          | Some ret ->
+              let edef =
+                match edef with
+                | None -> None
+                | Some { edef_name; edef_case; edef_loc } ->
+                    Some { pedef_name = edef_name;
+                           pedef_case = sub.case sub edef_case;
+                           pedef_loc = edef_loc; }
+              in
+                Peff_decl (constructor_arguments sub args, ret, edef)
           | None -> assert false
         end
       | Text_rebind (_p, lid) -> Peff_rebind (map_loc sub lid)

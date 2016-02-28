@@ -18,6 +18,8 @@ open Btype
 
 let builtin_idents = ref []
 
+let name_effect_default = "default"
+
 let wrap create s =
   let id = create s in
   builtin_idents := (s, id) :: !builtin_idents;

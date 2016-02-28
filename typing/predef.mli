@@ -14,6 +14,8 @@
 
 open Types
 
+val name_effect_default: string
+
 val type_int: type_expr
 val type_char: type_expr
 val type_string: type_expr

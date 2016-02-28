@@ -54,6 +54,9 @@ val type_approx:
 val type_argument:
         Env.t -> Parsetree.expression ->
         type_expr -> type_expr -> Typedtree.expression
+val type_effect_default:
+        Env.t -> Ident.t -> Parsetree.effect_default ->
+        Typedtree.extension_default
 
 val option_some: Typedtree.expression -> Typedtree.expression
 val option_none: type_expr -> Location.t -> Typedtree.expression
@@ -115,6 +118,7 @@ type error =
   | Inlined_record_escape
   | Effect_pattern_below_toplevel
   | Invalid_continuation_pattern
+  | Unexpected_effect_default of string * Ident.t
 
 exception Error of Location.t * Env.t * error
 exception Error_forward of Location.error

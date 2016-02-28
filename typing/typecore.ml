@@ -70,6 +70,7 @@ type error =
   | Inlined_record_escape
   | Effect_pattern_below_toplevel
   | Invalid_continuation_pattern
+  | Unexpected_effect_default of string * Ident.t
 
 
 exception Error of Location.t * Env.t * error
@@ -3946,6 +3947,60 @@ let type_expression env sexp =
       {exp with exp_type = desc.val_type}
   | _ -> exp
 
+(* Typing of default effect handlers *)
+
+let type_effect_default env constr_id sedef =
+  Typetexp.reset_type_variables();
+  let loc = sedef.pedef_loc in
+  let name = sedef.pedef_name in
+  let ty = newvar () in
+  begin_def ();
+  (* Create a fake abstract type declaration for return type. *)
+  let level = get_current_level () in
+  let decl = {
+    type_params = [];
+    type_arity = 0;
+    type_kind = Type_abstract;
+    type_private = Public;
+    type_manifest = None;
+    type_variance = [];
+    type_newtype_level = Some (level, level);
+    type_loc = loc;
+    type_attributes = [];
+  }
+  in
+  Ident.set_current_time ty.level;
+  let tname = Ctype.get_new_abstract_name "effect" in
+  let (id, env) = Env.enter_type tname decl env in
+  Ctype.init_def(Ident.current_time());
+  let ty_res = newgenty (Tconstr (Path.Pident id,[],ref Mnil)) in
+  let ty_arg = Predef.type_eff ty_res in
+  let caselist = [sedef.pedef_case] in
+  let cases, _partial = type_cases env ty_arg ty_res true loc caselist in
+  end_def ();
+  let case =
+    match cases with
+    | [case] -> case
+    | _ -> assert false
+  in
+  let constr_path = Path.Pident constr_id in
+  begin
+    match case.c_lhs with
+    | { pat_desc =
+          Tpat_construct(_, { cstr_tag = Cstr_extension(p, _) }, _) }
+        when Path.same p constr_path ->
+        if name.txt <> Predef.name_effect_default then
+          raise (Error(loc, env,
+            Unexpected_effect_default(Predef.name_effect_default, constr_id)))
+    | _ ->
+        raise (Error(loc, env,
+          Unexpected_effect_default(Predef.name_effect_default, constr_id)))
+  end;
+    { edef_name = name;
+      edef_case = case;
+      edef_loc = loc; }
+
+
 (* Error report *)
 
 let spellcheck ppf unbound_name valid_names =
@@ -4190,6 +4245,10 @@ let report_error env ppf = function
       fprintf ppf
         "@[This form is not allowed as the type of the inlined record could \
          escape.@]"
+  | Unexpected_effect_default(name, id) ->
+      fprintf ppf
+        "@[Expected definition of the form:@ %s@ %s@ ...@]"
+        name (Ident.name id)
 
 let report_error env ppf err =
   wrap_printing_env env (fun () -> report_error env ppf err)

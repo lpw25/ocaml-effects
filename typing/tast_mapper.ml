@@ -34,6 +34,7 @@ type mapper =
     expr: mapper -> expression -> expression;
     extension_constructor: mapper -> extension_constructor ->
       extension_constructor;
+    extension_default: mapper -> extension_default -> extension_default;
     module_binding: mapper -> module_binding -> module_binding;
     module_coercion: mapper -> module_coercion -> module_coercion;
     module_declaration: mapper -> module_declaration -> module_declaration;
@@ -174,11 +175,17 @@ let type_extension sub x =
 let extension_constructor sub x =
   let ext_kind =
     match x.ext_kind with
-      Text_decl(ctl, cto) ->
-        Text_decl(constructor_args sub ctl, opt (sub.typ sub) cto)
+      Text_decl(ctl, cto, def) ->
+        Text_decl(constructor_args sub ctl,
+                  opt (sub.typ sub) cto,
+                  opt (sub.extension_default sub) def)
     | Text_rebind _ as d -> d
   in
   {x with ext_kind}
+
+let extension_default sub x =
+  let edef_case = sub.case sub x.edef_case in
+  {x with edef_case}
 
 let pat sub x =
   let extra = function
@@ -649,6 +656,7 @@ let default =
     env;
     expr;
     extension_constructor;
+    extension_default;
     module_binding;
     module_coercion;
     module_declaration;

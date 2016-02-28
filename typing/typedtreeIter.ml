@@ -25,6 +25,7 @@ module type IteratorArgument = sig
     val enter_value_description : value_description -> unit
     val enter_type_extension : type_extension -> unit
     val enter_extension_constructor : extension_constructor -> unit
+    val enter_extension_default : extension_default -> unit
     val enter_pattern : pattern -> unit
     val enter_expression : expression -> unit
     val enter_package_type : package_type -> unit
@@ -51,6 +52,7 @@ module type IteratorArgument = sig
     val leave_value_description : value_description -> unit
     val leave_type_extension : type_extension -> unit
     val leave_extension_constructor : extension_constructor -> unit
+    val leave_extension_default : extension_default -> unit
     val leave_pattern : pattern -> unit
     val leave_expression : expression -> unit
     val leave_package_type : package_type -> unit
@@ -97,11 +99,7 @@ module MakeIterator(Iter : IteratorArgument) : sig
 
   end = struct
 
-    let may_iter f v =
-      match v with
-        None -> ()
-      | Some x -> f x
-
+    let may_iter f x = match x with None -> () | Some e -> f e
 
     let rec iter_structure str =
       Iter.enter_structure str;
@@ -170,7 +168,7 @@ module MakeIterator(Iter : IteratorArgument) : sig
 
     and iter_constructor_declaration cd =
       iter_constructor_arguments cd.cd_args;
-      option iter_core_type cd.cd_res;
+      may_iter iter_core_type cd.cd_res;
 
     and iter_type_parameter (ct, v) =
       iter_core_type ct
@@ -193,7 +191,7 @@ module MakeIterator(Iter : IteratorArgument) : sig
             ) list
         | Ttype_open -> ()
       end;
-      option iter_core_type decl.typ_manifest;
+      may_iter iter_core_type decl.typ_manifest;
       Iter.leave_type_declaration decl
 
     and iter_type_declarations rec_flag decls =
@@ -204,12 +202,18 @@ module MakeIterator(Iter : IteratorArgument) : sig
     and iter_extension_constructor ext =
       Iter.enter_extension_constructor ext;
       begin match ext.ext_kind with
-          Text_decl(args, ret) ->
+          Text_decl(args, ret, def) ->
           iter_constructor_arguments args;
-            option iter_core_type ret
+          may_iter iter_core_type ret;
+          may_iter iter_extension_default def
         | Text_rebind _ -> ()
       end;
       Iter.leave_extension_constructor ext;
+
+    and iter_extension_default edef =
+      Iter.enter_extension_default edef;
+      iter_case edef.edef_case;
+      Iter.leave_extension_default edef
 
     and iter_type_extension tyext =
       Iter.enter_type_extension tyext;
@@ -246,8 +250,6 @@ module MakeIterator(Iter : IteratorArgument) : sig
       end;
       Iter.leave_pattern pat
 
-    and option f x = match x with None -> () | Some e -> f e
-
     and iter_expression exp =
       Iter.enter_expression exp;
       List.iter (function (cstr, _, _attrs) ->
@@ -255,9 +257,9 @@ module MakeIterator(Iter : IteratorArgument) : sig
           Texp_constraint ct ->
             iter_core_type ct
         | Texp_coerce (cty1, cty2) ->
-            option iter_core_type cty1; iter_core_type cty2
+            may_iter iter_core_type cty1; iter_core_type cty2
         | Texp_open (_, path, _, _) -> ()
-        | Texp_poly cto -> option iter_core_type cto
+        | Texp_poly cto -> may_iter iter_core_type cto
         | Texp_newtype s -> ())
         exp.exp_extra;
       begin
@@ -609,6 +611,7 @@ module DefaultIteratorArgument = struct
       let enter_value_description _ = ()
       let enter_type_extension _ = ()
       let enter_extension_constructor _ = ()
+      let enter_extension_default _ = ()
       let enter_pattern _ = ()
       let enter_expression _ = ()
       let enter_package_type _ = ()
@@ -636,6 +639,7 @@ module DefaultIteratorArgument = struct
       let leave_value_description _ = ()
       let leave_type_extension _ = ()
       let leave_extension_constructor _ = ()
+      let leave_extension_default _ = ()
       let leave_pattern _ = ()
       let leave_expression _ = ()
       let leave_package_type _ = ()
