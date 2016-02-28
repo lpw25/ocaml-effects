@@ -474,10 +474,11 @@ module Te = struct
      peff_attributes = attrs;
     }
 
-  let effect_decl ?(loc = !default_loc) ?(attrs = []) ?(args = Pcstr_tuple []) name res =
+  let effect_decl ?(loc = !default_loc) ?(attrs = [])
+                  ?(args = Pcstr_tuple []) ?default name res =
     {
      peff_name = name;
-     peff_kind = Peff_decl(args, res);
+     peff_kind = Peff_decl(args, res, default);
      peff_loc = loc;
      peff_attributes = attrs;
     }
@@ -489,6 +490,14 @@ module Te = struct
      peff_loc = loc;
      peff_attributes = attrs;
     }
+
+  let effect_default ?(loc = !default_loc) name case =
+    {
+     pedef_name = name;
+     pedef_case = case;
+     pedef_loc = loc;
+    }
+
 end
 
 module Csig = struct

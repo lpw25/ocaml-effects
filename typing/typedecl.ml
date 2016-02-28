@@ -1390,7 +1390,7 @@ let transl_effect env seff =
   let id = Ident.create seff.peff_name.txt in
   let args, ret_type, kind =
     match seff.peff_kind with
-    | Peff_decl(sargs, sret) ->
+    | Peff_decl(sargs, sret, _sedef) ->
         let targs, tret_type, args, ret_type =
           make_effect_constructor seff.peff_loc env type_param sargs sret
         in

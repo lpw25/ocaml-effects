@@ -173,9 +173,20 @@ module T = struct
       ~loc:(sub.location sub pext_loc)
       ~attrs:(sub.attributes sub pext_attributes)
 
+  let map_effect_default sub
+      {pedef_name;
+       pedef_case;
+       pedef_loc;} =
+    Te.effect_default
+      (map_loc sub pedef_name)
+      (sub.case sub pedef_case)
+      ~loc:(sub.location sub pedef_loc)
+
   let map_effect_constructor_kind sub = function
-      Peff_decl(ctl, cto) ->
-        Peff_decl(map_constructor_arguments sub ctl, sub.typ sub cto)
+      Peff_decl(ctl, cto, edef) ->
+        Peff_decl(map_constructor_arguments sub ctl,
+                  sub.typ sub cto,
+                  map_opt (map_effect_default sub) edef)
     | Peff_rebind li ->
         Peff_rebind (map_loc sub li)
 

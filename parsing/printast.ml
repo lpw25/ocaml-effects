@@ -465,13 +465,21 @@ and effect_constructor i ppf x =
 
 and effect_constructor_kind i ppf x =
   match x with
-      Peff_decl(a, r) ->
+      Peff_decl(a, r, d) ->
         line i ppf "Peff_decl\n";
         constructor_arguments (i+1) ppf a;
         core_type (i + 1) ppf r;
+        option (i + 1) effect_default ppf d;
     | Peff_rebind li ->
         line i ppf "Peff_rebind\n";
         line (i+1) ppf "%a\n" fmt_longident_loc li;
+
+and effect_default i ppf x =
+  line i ppf "effect_default %a\n" fmt_location x.pedef_loc;
+  let i = i + 1 in
+  line i ppf "pedef_name = \"%s\"\n" x.pedef_name.txt;
+  line i ppf "pedef_case =\n";
+  case (i + 1) ppf x.pedef_case;
 
 and class_type i ppf x =
   line i ppf "class_type %a\n" fmt_location x.pcty_loc;

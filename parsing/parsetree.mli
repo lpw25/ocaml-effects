@@ -458,7 +458,7 @@ and effect_constructor =
     }
 
 and effect_constructor_kind =
-    Peff_decl of constructor_arguments * core_type
+    Peff_decl of constructor_arguments * core_type * effect_default option
       (*
          | C of T1 * ... * Tn     ([T1; ...; Tn], None)
          | C: T0                  ([], Some T0)
@@ -468,6 +468,13 @@ and effect_constructor_kind =
       (*
          | C = D
        *)
+
+and effect_default =
+    {
+     pedef_name: string loc;
+     pedef_case: case;
+     pedef_loc: Location.t;
+    }
 
 (** {2 Class language} *)
 

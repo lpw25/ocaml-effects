@@ -258,7 +258,7 @@ let effect_constructor sub ext =
       | Text_decl (args, ret) ->
         begin
           match map_opt (sub.typ sub) ret with
-          | Some ret -> Peff_decl (constructor_arguments sub args, ret)
+          | Some ret -> Peff_decl (constructor_arguments sub args, ret, failwith "TODO")
           | None -> assert false
         end
       | Text_rebind (_p, lid) -> Peff_rebind (map_loc sub lid)

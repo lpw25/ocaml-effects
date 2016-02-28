@@ -48,6 +48,8 @@ class printer :
       Format.formatter -> Parsetree.effect_constructor -> unit
     method effect_declaration :
       Format.formatter -> Parsetree.effect_constructor -> unit
+    method effect_default :
+      Format.formatter -> Parsetree.effect_default -> unit
     method exception_declaration :
       Format.formatter -> Parsetree.extension_constructor -> unit
     method expression : Format.formatter -> Parsetree.expression -> unit

@@ -1863,17 +1863,25 @@ effect_declaration:
   | effect_constructor_rebind           { $1 }
 ;
 effect_constructor_declaration:
-  | EFFECT constr_ident attributes COLON constructor_arguments MINUSGREATER simple_core_type
-      post_item_attributes
-      { Te.effect_decl (mkrhs $2 1) $7 ~args:$5 ~loc:(symbol_rloc()) ~attrs:($8 @ $3) }
-  | EFFECT constr_ident attributes COLON simple_core_type post_item_attributes
-      { Te.effect_decl (mkrhs $2 1) $5
-          ~loc:(symbol_rloc()) ~attrs:($6 @ $3) }
+  | EFFECT constr_ident attributes COLON constructor_arguments MINUSGREATER
+      simple_core_type effect_default post_item_attributes
+      { Te.effect_decl (mkrhs $2 2) $7 ~args:$5 ?default:$8
+          ~loc:(symbol_rloc()) ~attrs:($9 @ $3) }
+  | EFFECT constr_ident attributes COLON simple_core_type effect_default post_item_attributes
+      { Te.effect_decl (mkrhs $2 2) $5 ?default:$6
+          ~loc:(symbol_rloc()) ~attrs:($7 @ $3) }
 ;
 effect_constructor_rebind:
   | EFFECT constr_ident attributes EQUAL constr_longident post_item_attributes
-      { Te.effect_rebind (mkrhs $2 1) (mkrhs $5 4)
+      { Te.effect_rebind (mkrhs $2 2) (mkrhs $5 5)
           ~loc:(symbol_rloc()) ~attrs:($6 @ $3) }
+;
+effect_default:
+    /*empty*/
+      { None }
+  | WITH val_ident simple_pattern EQUAL seq_expr
+      { Some (Te.effect_default (mkrhs $2 2) (Exp.case $3 $5)
+                                ~loc:(symbol_rloc())) }
 ;
 generalized_constructor_arguments:
     /*empty*/                     { (Pcstr_tuple [],None) }

@@ -93,13 +93,6 @@ let add_extension_constructor bv ext =
       Misc.may (add_type bv) rty
   | Pext_rebind lid -> add bv lid
 
-let add_effect_constructor bv eff =
-  match eff.peff_kind with
-      Peff_decl(args, rty) ->
-        add_constructor_arguments bv args;
-        add_type bv rty
-    | Peff_rebind lid -> add bv lid
-
 let add_type_extension bv te =
   add bv te.ptyext_path;
   List.iter (add_extension_constructor bv) te.ptyext_constructors
@@ -223,6 +216,17 @@ and add_bindings recf bv pel =
   let bv = if recf = Recursive then bv' else bv in
   List.iter (fun x -> add_expr bv x.pvb_expr) pel;
   bv'
+
+and add_effect_default bv edef =
+  add_case bv edef.pedef_case
+
+and add_effect_constructor bv eff =
+  match eff.peff_kind with
+      Peff_decl(args, rty, edef) ->
+        add_constructor_arguments bv args;
+        add_type bv rty;
+        add_opt add_effect_default bv edef
+    | Peff_rebind lid -> add bv lid
 
 and add_modtype bv mty =
   match mty.pmty_desc with

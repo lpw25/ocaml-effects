@@ -1352,12 +1352,20 @@ class printer  ()= object(self:'self)
 
   method effect_constructor f x =
     match x.peff_kind with
-    | Peff_decl(l, r) ->
-        self#constructor_declaration f (x.peff_name.txt, l, Some r, x.peff_attributes)
+    | Peff_decl(l, r, d) ->
+        pp f "%a@;%a"
+           self#constructor_declaration
+           (x.peff_name.txt, l, Some r, x.peff_attributes)
+           (self#option self#effect_default) d
     | Peff_rebind li ->
         pp f "%s%a@;=@;%a" x.peff_name.txt
           self#attributes x.peff_attributes
           self#longident_loc li
+
+  method effect_default f x =
+    pp f "with %s@;%a@;=@;%a" x.pedef_name.txt
+       self#pattern x.pedef_case.pc_lhs
+       self#expression x.pedef_case.pc_rhs
 
   method case_list f l : unit =
     let aux f {pc_lhs; pc_guard; pc_rhs} =
