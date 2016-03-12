@@ -201,8 +201,8 @@ let pat sub x =
     | Tpat_var _
     | Tpat_constant _ as d -> d
     | Tpat_tuple l -> Tpat_tuple (List.map (sub.pat sub) l)
-    | Tpat_construct (loc, cd, l) ->
-        Tpat_construct (loc, cd, List.map (sub.pat sub) l)
+    | Tpat_construct (loc, cd, t, l) ->
+        Tpat_construct (loc, cd, t, List.map (sub.pat sub) l)
     | Tpat_variant (l, po, rd) -> Tpat_variant (l, opt (sub.pat sub) po, rd)
     | Tpat_record (l, closed) ->
         Tpat_record (List.map (tuple3 id id (sub.pat sub)) l, closed)

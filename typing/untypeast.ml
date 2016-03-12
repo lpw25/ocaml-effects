@@ -312,8 +312,8 @@ let pattern sub pat =
     | Tpat_constant cst -> Ppat_constant cst
     | Tpat_tuple list ->
         Ppat_tuple (List.map (sub.pat sub) list)
-    | Tpat_construct (lid, _, args) ->
-        Ppat_construct (map_loc sub lid,
+    | Tpat_construct (lid, _, total, args) ->
+        Ppat_construct (map_loc sub lid, total,
           (match args with
               [] -> None
             | [arg] -> Some (sub.pat sub arg)

@@ -1438,7 +1438,9 @@ let transl_effect env seff =
     match ukind with
     | NoDefault kind -> kind
     | Default(targs, tret_type, sedef) ->
-        let edef = Typecore.type_effect_default newenv id sedef in
+        let edef =
+          Typecore.type_effect_default newenv seff.peff_name.txt sedef
+        in
           Text_decl(targs, tret_type, Some edef)
   in
   let text =

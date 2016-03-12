@@ -110,7 +110,7 @@ let mkexp_cons consloc args loc =
   Exp.mk ~loc (Pexp_construct(mkloc (Lident "::") consloc, Some args))
 
 let mkpat_cons consloc args loc =
-  Pat.mk ~loc (Ppat_construct(mkloc (Lident "::") consloc, Some args))
+  Pat.mk ~loc (Ppat_construct(mkloc (Lident "::") consloc, false, Some args))
 
 let rec mktailexp nilloc = function
     [] ->
@@ -130,7 +130,7 @@ let rec mktailpat nilloc = function
     [] ->
       let loc = { nilloc with loc_ghost = true } in
       let nil = { txt = Lident "[]"; loc = loc } in
-      Pat.mk ~loc (Ppat_construct (nil, None))
+      Pat.mk ~loc (Ppat_construct (nil, false, None))
   | p1 :: pl ->
       let pat_pl = mktailpat nilloc pl in
       let loc = {loc_start = p1.ppat_loc.loc_start;
@@ -1610,7 +1610,7 @@ pattern:
   | pattern_comma_list  %prec below_COMMA
       { mkpat(Ppat_tuple(List.rev $1)) }
   | constr_longident pattern %prec prec_constr_appl
-      { mkpat(Ppat_construct(mkrhs $1 1, Some $2)) }
+      { mkpat(Ppat_construct(mkrhs $1 1, false, Some $2)) }
   | name_tag pattern %prec prec_constr_appl
       { mkpat(Ppat_variant($1, Some $2)) }
   | pattern COLONCOLON pattern
@@ -1647,7 +1647,7 @@ simple_pattern_not_ident:
   | signed_constant DOTDOT signed_constant
       { mkpat(Ppat_interval ($1, $3)) }
   | constr_longident
-      { mkpat(Ppat_construct(mkrhs $1 1, None)) }
+      { mkpat(Ppat_construct(mkrhs $1 1, false, None)) }
   | name_tag
       { mkpat(Ppat_variant($1, None)) }
   | SHARP type_longident

@@ -65,7 +65,7 @@ let rec pattern_vars pat =
   | Ppat_tuple l
   | Ppat_array l ->
       List.concat (List.map pattern_vars l)
-  | Ppat_construct (_, Some pat)
+  | Ppat_construct (_, _, Some pat)
   | Ppat_variant (_, Some pat)
   | Ppat_constraint (pat, _) ->
       pattern_vars pat
