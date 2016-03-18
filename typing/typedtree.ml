@@ -460,6 +460,8 @@ and extension_default =
   {
     edef_name: string loc;
     edef_case: case;
+    edef_partial: partial;
+    edef_env: Env.t;
     edef_loc: Location.t;
   }
 

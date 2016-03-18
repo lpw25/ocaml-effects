@@ -3993,7 +3993,7 @@ let type_effect_default env cname sedef =
           Unexpected_effect_default(Predef.name_effect_default, cname)))
   in
   let caselist = [case] in
-  let cases, _partial = type_cases env ty_arg ty_res true loc caselist in
+  let cases, partial = type_cases env ty_arg ty_res true loc caselist in
   end_def ();
   let case =
     match cases with
@@ -4002,6 +4002,8 @@ let type_effect_default env cname sedef =
   in
     { edef_name = name;
       edef_case = case;
+      edef_partial = partial;
+      edef_env = env;
       edef_loc = loc; }
 
 

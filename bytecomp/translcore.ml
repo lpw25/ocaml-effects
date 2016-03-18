@@ -624,15 +624,15 @@ let event_after exp lam =
                     lev_env = Env.summary exp.exp_env})
   else lam
 
-let event_function exp lam =
+let event_function loc env lam =
   if !Clflags.debug then
     let repr = Some (ref 0) in
     let (info, body) = lam repr in
     (info,
-     Levent(body, {lev_loc = exp.exp_loc;
+     Levent(body, {lev_loc = loc;
                    lev_kind = Lev_function;
                    lev_repr = repr;
-                   lev_env = Env.summary exp.exp_env}))
+                   lev_env = Env.summary env}))
   else
     lam None
 
@@ -707,7 +707,7 @@ and transl_exp0 e =
       transl_let rec_flag pat_expr_list (event_before body (transl_exp body))
   | Texp_function (_, pat_expr_list, partial) ->
       let ((kind, params), body) =
-        event_function e
+        event_function e.exp_loc e.exp_env
           (function repr ->
             let pl = push_defaults e.exp_loc [] pat_expr_list partial in
             transl_function e.exp_loc !Clflags.native_code repr partial pl)
@@ -1295,6 +1295,15 @@ and transl_handler e body val_caselist exn_caselist eff_caselist =
   in
     Lprim(Presume, [Lprim(prim_alloc_stack, [val_fun; exn_fun; eff_fun]);
                     body_fun; arg])
+
+let transl_effect_default edef =
+  let ((kind, params), body) =
+    event_function edef.edef_loc edef.edef_env
+      (fun repr ->
+         transl_function edef.edef_loc
+           !Clflags.native_code repr edef.edef_partial [edef.edef_case])
+  in
+    Lfunction{kind; params; body}
 
 (* Wrapper for class compilation *)
 
