@@ -22,6 +22,13 @@ let delegate e k =
   | v -> continue k v
   | exception e -> discontinue k e
 
+let default (eff : 'a eff) : 'a =
+  let slot = Obj.extension_slot eff in
+  if Obj.size slot < 3 then raise Unhandled
+  else begin
+   let def = (Obj.obj (Obj.field slot 2) : 'a eff -> 'a) in
+     def eff
+  end
 
 (*
 type ('a, 'b) stack
